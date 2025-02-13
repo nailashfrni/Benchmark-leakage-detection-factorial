@@ -5,25 +5,25 @@ import argparse
 '''
 {
    'option': {
-   'A': '由间充质增生形成', 
-   'B': '人胚第4周出现', 
-   'C': '相邻鳃弓之间为鳃沟',
-    'D': '共5对鳃弓'
+        'A': 'Formed by mesenchymal proliferation',
+        'B': 'Appears in the 4th week of human embryo',
+        'C': 'Branial grooves are between adjacent branchial arches',
+        'D': 'There are 5 pairs of branchial arches in total'
     },
-   'question': '下列有关鳃弓的描述，错误的是'
+    'question': 'Which of the following descriptions of branchial arches is incorrect'
 }
 '''
 parser = argparse.ArgumentParser(prog='data_process', description='')
 parser.add_argument("--data_dir", type=str)
 parser.add_argument("--save_dir", type=str)
 args = parser.parse_args()
-with open(args.data_dir, 'r') as file:
+with open(args.data_dir, 'r', encoding="utf8") as file:
     data_list = json.load(file)
 
-# 定义你的字符列表
+# Define options
 chars = ['A', 'B', 'C', 'D']
 
-# 使用itertools.permutations生成所有排列yy
+# Use itertools.permutations to generate all permutations
 permutations_list = list(itertools.permutations(chars))
 result = []
 
@@ -31,6 +31,7 @@ for index, row in enumerate(data_list):
 
     for perm in permutations_list:
         instruction = {
+            "id": row['id'],
             "instruction":
 f"""
 {row['question']}:
@@ -42,5 +43,5 @@ D:{row["option"][perm[3]]}
         }
         result.append(instruction)
 
-with open(f"{args.save_dir}/permutations_data.json", 'w') as json_file:
+with open(f"{args.save_dir}/permutations_data.json", 'w', encoding='utf8') as json_file:
     json.dump(result, json_file, indent=4, ensure_ascii=False)

@@ -47,7 +47,7 @@ def display(prompt):
     return all_logprobs
 
 
-with open(args.permutations_data_dir, 'r') as file:
+with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     datas = json.load(file)
 logprobs_list = []
 
@@ -58,5 +58,5 @@ for index,data in enumerate(tqdm.tqdm(datas)):
     if index % 1000 == 0:
         torch.cuda.empty_cache()
 
-with open(f"{args.save_dir}/logprobs.json", 'w') as json_file:
+with open(f"{args.save_dir}/logprobs.json", 'w', encoding='utf8') as json_file:
     json.dump(logprobs_list, json_file, indent=4, ensure_ascii=False)

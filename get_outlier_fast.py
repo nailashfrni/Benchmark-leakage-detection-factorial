@@ -41,7 +41,7 @@ if args.method == "shuffled":
                 outliers[outlier_index].append(outlier)
 
     for i, threshold in enumerate(thresholds):
-        print(f"模型阈值{threshold},数据泄露百分比为{len(outliers[i]) / len(list_data):.2f}")
+        print(f"Threshold: {threshold}. Leakage percentage: {len(outliers[i]) / len(list_data):.2f}")
         with open(f'{args.save_dir}/outliers{threshold}.json', 'w') as json_file:
             json.dump(outliers[i], json_file, indent=4, ensure_ascii=False)
 else:
@@ -62,5 +62,5 @@ else:
             }
             outliers.append(dict)
     with open(f'{args.save_dir}/outliers_max.json', 'w') as json_file:
-        print(f"模型数据泄露百分比为{len(outliers) / len(list_data):.2f}")
+        print(f"Leakage percentage: {len(outliers) / len(list_data):.2f}")
         json.dump(outliers, json_file, indent=4, ensure_ascii=False)
