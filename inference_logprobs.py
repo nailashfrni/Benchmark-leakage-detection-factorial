@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
-                                             attn_implementation="flash_attention_2", torch_dtype="auto").eval()
+                                             torch_dtype="auto").eval()
 
 
 def find_indices(lst, value):

@@ -1,0 +1,5 @@
+transformers==4.47.1
+torch==2.5.1
+accelerate==1.2.1
+tqdm==4.67.1
+flash-attn==1.0.4
