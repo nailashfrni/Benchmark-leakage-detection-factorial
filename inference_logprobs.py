@@ -15,7 +15,7 @@ args = parser.parse_args()
 
 tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
 model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
-                                             torch_dtype="auto").eval()
+                                             torch_dtype=torch.float16).eval()
 
 def find_indices(lst, value):
     indices = []
@@ -28,7 +28,7 @@ def find_indices(lst, value):
 
 def score(prompt):
     with torch.no_grad():
-        device = next(model.parameters()).device
+        device = model.device if hasattr(model, "device") else next(model.parameters()).device
         input_ids = tokenizer(prompt, return_tensors="pt").to(device).input_ids
         input_tokens = [tokenizer.decode([id]) for id in input_ids[0]]
         index = find_indices(input_tokens, 'A')
