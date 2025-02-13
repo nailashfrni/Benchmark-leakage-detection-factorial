@@ -2,7 +2,8 @@ from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import torch.nn.functional as F
 import json
-import tqdm
+from tqdm import tqdm
+from multiprocessing.pool import ThreadPool
 import argparse
 parser = argparse.ArgumentParser(prog='logprobs', description='')
 parser.add_argument("--model_dir", type=str)
@@ -51,12 +52,22 @@ with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     datas = json.load(file)
 logprobs_list = []
 
-for index,data in enumerate(tqdm.tqdm(datas)):
+num_threads = 50
+index = 0
+with ThreadPool(min(num_threads, len(datas))) as pool:
+    for result in tqdm(pool.imap(lambda data: display(data["instruction"]),
+                                datas), total=len(datas)):
+        logprobs_list.append(result)
+        if index % 1000 == 0:
+            torch.cuda.empty_cache()
+        index += 1
 
-    result = display(data["instruction"])
-    logprobs_list.append(result)
-    if index % 1000 == 0:
-        torch.cuda.empty_cache()
+# for index,data in enumerate(tqdm.tqdm(datas)):
+
+#     result = display(data["instruction"])
+#     logprobs_list.append(result)
+#     if index % 1000 == 0:
+#         torch.cuda.empty_cache()
 
 with open(f"{args.save_dir}/logprobs.json", 'w', encoding='utf8') as json_file:
     json.dump(logprobs_list, json_file, indent=4, ensure_ascii=False)
