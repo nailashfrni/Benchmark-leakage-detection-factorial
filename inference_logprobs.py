@@ -7,6 +7,18 @@ import argparse
 parser = argparse.ArgumentParser(prog='logprobs', description='')
 parser.add_argument("--model_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
+parser.add_argument(
+        "--groups", 
+        nargs="*",
+        type=str,
+        help="Select specific list of groups (optional)"
+    )
+parser.add_argument(
+        "--subjects", 
+        nargs="*",
+        type=str,
+        help="Select specific list of subjects (optional)"
+    )
 parser.add_argument("--save_dir", type=str)
 args = parser.parse_args()
 
@@ -49,6 +61,14 @@ def display(prompt):
 
 with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     datas = json.load(file)
+
+if args.subjects:
+    datas = [d for d in datas if d['subject'] in args.subjects]
+elif args.groups:
+    datas = [d for d in datas if d['group'] in args.groups]
+subject_suffix = f"-{args.subjects}" if args.subjects else ""
+groups_suffix = f"-{args.groups}" if args.groups else ""
+
 logprobs_list = []
 
 for index,data in enumerate(tqdm.tqdm(datas)):
@@ -58,5 +78,5 @@ for index,data in enumerate(tqdm.tqdm(datas)):
     if index % 1000 == 0:
         torch.cuda.empty_cache()
 
-with open(f"{args.save_dir}/logprobs.json", 'w', encoding='utf8') as json_file:
+with open(f"{args.save_dir}/logprobs{subject_suffix}{groups_suffix}.json", 'w', encoding='utf8') as json_file:
     json.dump(logprobs_list, json_file, indent=4, ensure_ascii=False)

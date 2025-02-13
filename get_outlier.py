@@ -9,6 +9,7 @@ parser.add_argument("--logprobs_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
 parser.add_argument("--save_dir", type=str)
 parser.add_argument("--method", type=str)
+parser.add_argument("--prefix", type=str)
 parser.add_argument("--permutation_num", type=int)
 args = parser.parse_args()
 thresholds = [-0.2, -0.17, -0.15]
@@ -17,7 +18,7 @@ with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     list_data = json.load(file)
 with open(args.logprobs_dir, 'r', encoding='utf8') as file:
     list_logprobs = json.load(file)
-with open('/kaggle/working/Benchmark-leakage-detection-factorial/data/mmlu_3000.json', 'r', encoding='utf8') as file:
+with open(f'{args.prefix}/data/mmlu_3000.json', 'r', encoding='utf8') as file:
     data = json.load(file)
     list_ids = [d['id'] for d in data]
 

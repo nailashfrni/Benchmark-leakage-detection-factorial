@@ -32,6 +32,8 @@ for index, row in enumerate(data_list):
     for perm in permutations_list:
         instruction = {
             "id": row['id'],
+            "group": row['group'],
+            "subject": row['subject'],
             "instruction":
 f"""
 {row['question']}:

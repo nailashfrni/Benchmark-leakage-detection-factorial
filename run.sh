@@ -1,3 +1,3 @@
 python data_process.py  --data_dir data/mmlu_3000.json --save_dir data
 CUDA_VISIBLE_DEVICES=1 python Benchmark-leakage-detection-factorial/inference_logprobs.py --model_dir Qwen/Qwen2.5-7B-Instruct --permutations_data_dir /kaggle/working/Benchmark-leakage-detection-factorial/data/permutations_data.json --save_dir data
-python Benchmark-leakage-detection-factorial/get_outlier.py --logprobs_dir data/logprobs.json --permutations_data_dir /kaggle/working/Benchmark-leakage-detection-factorial/data/permutations_data.json --save_dir data --method shuffled --permutation_num 24
+python Benchmark-leakage-detection-factorial/get_outlier.py --logprobs_dir data/logprobs.json --permutations_data_dir /kaggle/working/Benchmark-leakage-detection-factorial/data/permutations_data.json --save_dir data --method shuffled --permutation_num 24 --prefix /kaggle/working/Benchmark-leakage-detection-factorial
