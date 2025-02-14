@@ -4,6 +4,13 @@ import json
 import argparse
 import tqdm
 
+def filter_data(datas, subjects, groups):
+    if subjects:
+        datas = [d for d in datas if d['subject'] in subjects]
+    elif groups:
+        datas = [d for d in datas if d['group'] in groups]
+    return datas
+
 parser = argparse.ArgumentParser(prog='get_outlier', description='')
 parser.add_argument("--logprobs_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
@@ -11,6 +18,18 @@ parser.add_argument("--save_dir", type=str)
 parser.add_argument("--method", type=str)
 parser.add_argument("--prefix", type=str)
 parser.add_argument("--permutation_num", type=int)
+parser.add_argument(
+        "--groups", 
+        nargs="*",
+        type=str,
+        help="Select specific list of groups (optional)"
+    )
+parser.add_argument(
+        "--subjects", 
+        nargs="*",
+        type=str,
+        help="Select specific list of subjects (optional)"
+    )
 args = parser.parse_args()
 thresholds = [-0.2, -0.17, -0.15]
 
@@ -22,8 +41,14 @@ with open(f'{args.prefix}/data/mmlu_3000.json', 'r', encoding='utf8') as file:
     data = json.load(file)
     list_ids = [d['id'] for d in data]
 
+list_data = filter_data(list_data, args.subjects, args.groups)
+list_ids = filter_data(list_ids, args.subjects, args.groups)
+
 list_data = [list_data[i:i + args.permutation_num] for i in range(0, len(list_data), args.permutation_num)]
 list_logprobs = [list_logprobs[i:i + args.permutation_num] for i in range(0, len(list_logprobs), args.permutation_num)]
+
+subject_suffix = f"-{args.subjects}" if args.subjects else ""
+groups_suffix = f"-{args.groups}" if args.groups else ""
 
 if args.method == "shuffled":
     leakage_info = [[], [], []]
@@ -54,9 +79,9 @@ if args.method == "shuffled":
 
     for i, threshold in enumerate(thresholds):
         print(f"Threshold: {threshold}. Leakage percentage: {len(outliers[i]) / len(list_data):.2f}")
-        with open(f'{args.save_dir}/outliers{threshold}.json', 'w', encoding='utf8') as json_file:
+        with open(f'{args.save_dir}/outliers{threshold}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
             json.dump(outliers[i], json_file, indent=4, ensure_ascii=False)
-        with open(f'{args.save_dir}/leakage{threshold}.json', 'w', encoding='utf8') as json_file:
+        with open(f'{args.save_dir}/leakage{threshold}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
             json.dump(leakage_info[i], json_file, indent=4, ensure_ascii=False)
 else:
     leakage_info = []
@@ -83,6 +108,6 @@ else:
             'id': list_data[index][0]["id"],
             'leakage': leakage
         })
-    with open(f'{args.save_dir}/outliers_max.json', 'w', encoding='utf8') as json_file:
+    with open(f'{args.save_dir}/outliers_max{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
         print(f"Leakage percentage: {len(outliers) / len(list_data):.2f}")
         json.dump(outliers, json_file, indent=4, ensure_ascii=False)
