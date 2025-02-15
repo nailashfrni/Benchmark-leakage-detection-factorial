@@ -75,8 +75,7 @@ for index,data in enumerate(tqdm.tqdm(datas)):
 
     result = display(data["instruction"])
     logprobs_list.append(result)
-    if index % 1000 == 0:
-        torch.cuda.empty_cache()
+    torch.cuda.empty_cache()
 
 with open(f"{args.save_dir}/logprobs{subject_suffix}{groups_suffix}.json", 'w', encoding='utf8') as json_file:
     json.dump(logprobs_list, json_file, indent=4, ensure_ascii=False)

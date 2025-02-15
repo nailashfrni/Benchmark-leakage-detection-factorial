@@ -39,10 +39,10 @@ with open(args.logprobs_dir, 'r', encoding='utf8') as file:
     list_logprobs = json.load(file)
 with open(f'{args.prefix}/data/mmlu_3000.json', 'r', encoding='utf8') as file:
     data = json.load(file)
+    data = filter_data(data, args.subjects, args.groups)
     list_ids = [d['id'] for d in data]
 
 list_data = filter_data(list_data, args.subjects, args.groups)
-list_ids = filter_data(list_ids, args.subjects, args.groups)
 
 list_data = [list_data[i:i + args.permutation_num] for i in range(0, len(list_data), args.permutation_num)]
 list_logprobs = [list_logprobs[i:i + args.permutation_num] for i in range(0, len(list_logprobs), args.permutation_num)]
