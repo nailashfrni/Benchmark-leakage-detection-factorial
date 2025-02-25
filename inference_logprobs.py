@@ -1,4 +1,4 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import torch
 import torch.nn.functional as F
 import json
@@ -30,10 +30,12 @@ if not args.is_peft:
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
+    quantization_config = BitsAndBytesConfig(load_in_4bit=False)
     base_model = AutoModelForCausalLM.from_pretrained(
-                "unsloth/qwen2.5-0.5b-unsloth-bnb-4bit",
-                torch_dtype=torch.float16,
-                device_map="auto"
+        "unsloth/qwen2.5-0.5b-unsloth-bnb-4bit",
+        torch_dtype=torch.float16,
+        device_map="auto",
+        quantization_config=quantization_config
     )
     lora_model = PeftModel.from_pretrained(base_model, "nailashfrni/qwen0.5b-ift-mmlu-lora", revision=f"checkpoint-epoch-{args.checkpoint_epoch}")
     model = lora_model.merge_and_unload()  
@@ -72,10 +74,10 @@ def display(prompt):
 with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     datas = json.load(file)
 
-if args.subjects:
-    datas = [d for d in datas if d['subject'] in args.subjects]
-elif args.groups:
-    datas = [d for d in datas if d['group'] in args.groups]
+# if args.subjects:
+#     datas = [d for d in datas if d['subject'] in args.subjects]
+# elif args.groups:
+#     datas = [d for d in datas if d['group'] in args.groups]
 subject_suffix = f"-{args.subjects}" if args.subjects else ""
 groups_suffix = f"-{args.groups}" if args.groups else ""
 cp_epoch_suffix = f"_cp-epoch-{args.checkpoint_epoch}" if (args.is_peft and args.checkpoint_epoch > 0) else ""
