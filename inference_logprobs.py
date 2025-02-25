@@ -4,6 +4,8 @@ import torch.nn.functional as F
 import json
 import tqdm
 import argparse
+from peft import PeftModel
+
 parser = argparse.ArgumentParser(prog='logprobs', description='')
 parser.add_argument("--model_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
