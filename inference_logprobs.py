@@ -20,13 +20,23 @@ parser.add_argument(
         help="Select specific list of subjects (optional)"
     )
 parser.add_argument("--save_dir", type=str)
+parser.add_argument("--is_peft", type=bool, default=False)
+parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
 
-
 tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
-model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
+if not args.is_peft:
+    model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
+else:
+    base_model = AutoModelForCausalLM.from_pretrained(
+                "unsloth/qwen2.5-0.5b-unsloth-bnb-4bit",
+                torch_dtype=torch.float16,
+                device_map="auto"
+    )
+    lora_model = PeftModel.from_pretrained(base_model, "nailashfrni/qwen0.5b-ift-mmlu-lora", revision=f"checkpoint-epoch-{args.checkpoint_epoch}")
+    model = lora_model.merge_and_unload()  
 
 
 def find_indices(lst, value):
@@ -68,6 +78,7 @@ elif args.groups:
     datas = [d for d in datas if d['group'] in args.groups]
 subject_suffix = f"-{args.subjects}" if args.subjects else ""
 groups_suffix = f"-{args.groups}" if args.groups else ""
+cp_epoch_suffix = f"_cp-epoch-{args.checkpoint_epoch}" if (args.is_peft and args.checkpoint_epoch > 0) else ""
 
 logprobs_list = []
 
@@ -77,5 +88,5 @@ for index,data in enumerate(tqdm.tqdm(datas)):
     logprobs_list.append(result)
     torch.cuda.empty_cache()
 
-with open(f"{args.save_dir}/logprobs{subject_suffix}{groups_suffix}.json", 'w', encoding='utf8') as json_file:
+with open(f"{args.save_dir}/logprobs{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json", 'w', encoding='utf8') as json_file:
     json.dump(logprobs_list, json_file, indent=4, ensure_ascii=False)
