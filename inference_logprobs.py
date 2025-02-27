@@ -1,4 +1,5 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+from transformers import AutoModelForCausalLM, AutoTokenizer
+from unsloth import FastLanguageModel
 import torch
 import torch.nn.functional as F
 import json
