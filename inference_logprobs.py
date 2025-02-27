@@ -28,20 +28,21 @@ parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
 
-tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
 if not args.is_peft:
+    tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
     base_model, tokenizer = FastLanguageModel.from_pretrained(
-        "unsloth/Qwen2.5-0.5B-Instruct",
+        # "unsloth/Qwen2.5-0.5B-Instruct",
+        args.model_dir,
         max_seq_length=2048,
         dtype=None,
         load_in_4bit=False,
     )
     FastLanguageModel.for_inference(base_model)
     peft_model = PeftModel.from_pretrained(
-        model,
+        base_model,
         "nailashfrni/qwen0.5b-ift-mmlu-lora-2.0",
         revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
     )
