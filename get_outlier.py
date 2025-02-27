@@ -1,15 +1,16 @@
 from sklearn.ensemble import IsolationForest
+from sklearn.metrics import cohen_kappa_score
 import numpy as np
 import json
 import argparse
 import tqdm
 
-def filter_data(datas, subjects, groups):
-    if subjects:
-        datas = [d for d in datas if d['subject'] in subjects]
-    elif groups:
-        datas = [d for d in datas if d['group'] in groups]
-    return datas
+# def filter_data(datas, subjects, groups):
+#     if subjects:
+#         datas = [d for d in datas if d['subject'] in subjects]
+#     elif groups:
+#         datas = [d for d in datas if d['group'] in groups]
+#     return datas
 
 parser = argparse.ArgumentParser(prog='get_outlier', description='')
 parser.add_argument("--logprobs_dir", type=str)
@@ -37,22 +38,28 @@ with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     list_data = json.load(file)
 with open(args.logprobs_dir, 'r', encoding='utf8') as file:
     list_logprobs = json.load(file)
-with open(f'{args.prefix}/data/mmlu_3000.json', 'r', encoding='utf8') as file:
-    data = json.load(file)
-    data = filter_data(data, args.subjects, args.groups)
-    list_ids = [d['id'] for d in data]
+with open(f'{args.prefix}/data/peft_dataset.json', 'r', encoding='utf8') as file:
+    dataset = json.load(file)
+    # data = filter_data(data, args.subjects, args.groups)
 
-list_data = filter_data(list_data, args.subjects, args.groups)
+# list_data = filter_data(list_data, args.subjects, args.groups)
 
 list_data = [list_data[i:i + args.permutation_num] for i in range(0, len(list_data), args.permutation_num)]
 list_logprobs = [list_logprobs[i:i + args.permutation_num] for i in range(0, len(list_logprobs), args.permutation_num)]
 
 subject_suffix = f"-{args.subjects}" if args.subjects else ""
 groups_suffix = f"-{args.groups}" if args.groups else ""
+y_true = [d['label'] for d in dataset]
+
+checkpoint_epoch = 0
+if 'cp' in args.logprobs_dir:
+    checkpoint_epoch = int(args.logprobs_dir.split("-")[-1].replace(".json", ""))
+cp_epoch_suffix = f"_cp-epoch-{checkpoint_epoch}" if (checkpoint_epoch > 0) else ""
 
 if args.method == "shuffled":
     leakage_info = [[], [], []]
     outliers = [[], [], []]
+    y_pred = [[], [], []]
     for index, data in enumerate(tqdm.tqdm(list_logprobs)):
         X = np.array(data).reshape(-1, 1)
         clf = IsolationForest(n_estimators=100, contamination='auto', random_state=42)
@@ -68,20 +75,24 @@ if args.method == "shuffled":
                     "max_value_index": str(max_value_index),
                     "id": list_data[index][max_value_index]["id"],
                     "data": list_data[index][max_value_index]["instruction"],
-                    "logprobs": data[max_value_index]
+                    "logprobs": data[max_value_index],
+                    "label": dataset[index]['label']
                 }
                 outliers[outlier_index].append(outlier)
                 leakage = 1
             leakage_info[outlier_index].append({
                 'id': list_data[index][max_value_index]["id"],
-                'leakage': leakage
+                'leakage': leakage,
+                "label": dataset[index]['label']
             })
+            y_pred[outlier_index].append(leakage)
 
     for i, threshold in enumerate(thresholds):
-        print(f"Threshold: {threshold}. Leakage percentage: {len(outliers[i]) / len(list_data):.2f}")
-        with open(f'{args.save_dir}/outliers{threshold}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
+        kappa = cohen_kappa_score(y_true, y_pred[i])
+        print(f"Threshold: {threshold}. Kappa Score: {kappa}. Leakage percentage: {len(outliers[i]) / len(list_data):.2f}")
+        with open(f'{args.save_dir}/outliers{threshold}{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
             json.dump(outliers[i], json_file, indent=4, ensure_ascii=False)
-        with open(f'{args.save_dir}/leakage{threshold}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
+        with open(f'{args.save_dir}/leakage{threshold}{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
             json.dump(leakage_info[i], json_file, indent=4, ensure_ascii=False)
 else:
     leakage_info = []
@@ -108,6 +119,6 @@ else:
             'id': list_data[index][0]["id"],
             'leakage': leakage
         })
-    with open(f'{args.save_dir}/outliers_max{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
+    with open(f'{args.save_dir}/outliers_max{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
         print(f"Leakage percentage: {len(outliers) / len(list_data):.2f}")
         json.dump(outliers, json_file, indent=4, ensure_ascii=False)

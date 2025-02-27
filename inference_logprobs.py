@@ -32,21 +32,25 @@ if not args.is_peft:
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
-    quantization_config = BitsAndBytesConfig(load_in_4bit=False)
-    base_model = AutoModelForCausalLM.from_pretrained(
-        "unsloth/qwen2.5-0.5b-unsloth-bnb-4bit",
-        torch_dtype=torch.float16,
-        device_map="auto",
-        quantization_config=quantization_config
+    base_model, tokenizer = FastLanguageModel.from_pretrained(
+        "unsloth/Qwen2.5-0.5B-Instruct",
+        max_seq_length=2048,
+        dtype=None,
+        load_in_4bit=False,
     )
-    lora_model = PeftModel.from_pretrained(base_model, "nailashfrni/qwen0.5b-ift-mmlu-lora", revision=f"checkpoint-epoch-{args.checkpoint_epoch}")
-    model = lora_model.merge_and_unload()  
+    FastLanguageModel.for_inference(base_model)
+    peft_model = PeftModel.from_pretrained(
+        model,
+        "nailashfrni/qwen0.5b-ift-mmlu-lora-2.0",
+        revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
+    )
+    model = peft_model.merge_and_unload()
 
 
 def find_indices(lst, value):
     indices = []
     for i, elem in enumerate(lst):
-        if (elem == value and len(lst[i + 1]) != 0 and lst[i + 1][0] == ":") or elem == 'A:':
+        if (elem == value and len(lst[i + 1]) != 0 and lst[i + 1][0] == ".") or elem == 'A.':
             indices.append(i)
             return indices
     return indices

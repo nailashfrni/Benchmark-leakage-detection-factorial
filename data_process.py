@@ -34,12 +34,19 @@ for index, row in enumerate(data_list):
             # "group": row['group'],
             # "subject": row['subject'],
             "instruction":
-f"""
+f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+
+### Instruction:
+Choose the best option from the multiple-choice question below.
+
+### Input:
 {row['question']}:
-A:{row['choices'][perm[0]]}
-B:{row["choices"][perm[1]]}
-C:{row["choices"][perm[2]]} 
-D:{row["choices"][perm[3]]}
+A. {row['choices'][perm[0]]}
+B. {row["choices"][perm[1]]}
+C. {row["choices"][perm[2]]} 
+D. {row["choices"][perm[3]]}
+
+### Response:
 """,
         }
         result.append(instruction)
