@@ -22,7 +22,7 @@ parser.add_argument(
         help="Select specific list of subjects (optional)"
     )
 parser.add_argument("--save_dir", type=str)
-parser.add_argument("--fine_tune_type", type=str, default=None)
+parser.add_argument("--fine_tune_type", type=str, default=None) # ift or cpt
 parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
@@ -32,10 +32,10 @@ if not args.fine_tune_type:
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
-    from unsloth import FastLanguageModel
     from peft import PeftModel
 
     if args.fine_tune_type == 'ift':
+        from unsloth import FastLanguageModel
         base_model, tokenizer = FastLanguageModel.from_pretrained(
             # "unsloth/Qwen2.5-0.5B-Instruct",
             args.model_dir,
