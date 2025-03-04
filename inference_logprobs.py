@@ -1,10 +1,10 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from unsloth import FastLanguageModel
 import torch
 import torch.nn.functional as F
 import json
 import tqdm
 import argparse
-from unsloth import FastLanguageModel
 from peft import PeftModel
 
 parser = argparse.ArgumentParser(prog='logprobs', description='')
