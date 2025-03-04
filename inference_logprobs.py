@@ -1,10 +1,11 @@
-from unsloth import FastLanguageModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import torch.nn.functional as F
 import json
 import tqdm
 import argparse
+from unsloth import FastLanguageModel
+from peft import PeftModel
 
 parser = argparse.ArgumentParser(prog='logprobs', description='')
 parser.add_argument("--base_model_dir", type=str)
@@ -28,15 +29,17 @@ parser.add_argument("--fine_tune_type", type=str, default=None) # ift or cpt
 parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
-
+print('cpaa')
 if not args.fine_tune_type in ['ift', 'cpt']:
+    print('cpbb')
     tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
-    from peft import PeftModel
+    print('cpcc')
 
     if args.fine_tune_type == 'ift':
+        print('cpdd')
         base_model, tokenizer = FastLanguageModel.from_pretrained(
             # "unsloth/Qwen2.5-0.5B-Instruct",
             args.model_dir,
@@ -53,6 +56,7 @@ else:
         )
         model = peft_model.merge_and_unload()
     else:
+        print('cpdd')
         tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=True)
         base_model = AutoModelForCausalLM.from_pretrained(base_model_dir, trust_remote_code=True,
                                                     torch_dtype=torch.float16, device_map="auto")
@@ -106,7 +110,7 @@ groups_suffix = f"-{args.groups}" if args.groups else ""
 cp_epoch_suffix = f"_cp-epoch-{args.checkpoint_epoch}" if (args.is_peft and args.checkpoint_epoch > 0) else ""
 
 logprobs_list = []
-
+print('cpfff')
 for index,data in enumerate(tqdm.tqdm(datas)):
 
     result = display(data["instruction"])
