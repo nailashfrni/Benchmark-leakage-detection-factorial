@@ -6,7 +6,8 @@ import tqdm
 import argparse
 
 parser = argparse.ArgumentParser(prog='logprobs', description='')
-parser.add_argument("--model_dir", type=str)
+parser.add_argument("--base_model_dir", type=str)
+parser.add_argument("--adapter_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
 parser.add_argument(
         "--groups", 
@@ -45,7 +46,8 @@ else:
         FastLanguageModel.for_inference(base_model)
         peft_model = PeftModel.from_pretrained(
             base_model,
-            "nailashfrni/qwen0.5b-ift-mmlu-lora-3.0",
+            # "nailashfrni/qwen0.5b-ift-mmlu-lora-3.0",
+            args.adapter_dir,
             revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
         )
         model = peft_model.merge_and_unload()
@@ -55,7 +57,7 @@ else:
                                                     torch_dtype=torch.float16, device_map="auto")
         peft_model = PeftModel.from_pretrained(
                         base_model,
-                        adapter_dir,
+                        args.adapter_dir,
                         revision=f"checkpoint-epoch-{checkpoint_epoch}"
                     )
         model = peft_model.merge_and_unload()
