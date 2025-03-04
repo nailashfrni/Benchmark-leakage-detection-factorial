@@ -58,7 +58,7 @@ with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
     list_data = json.load(file)
 with open(args.logprobs_dir, 'r', encoding='utf8') as file:
     list_logprobs = json.load(file)
-with open(f'{args.prefix}/data/peft_dataset.json', 'r', encoding='utf8') as file:
+with open(f'{args.prefix}/data/clean_peft_dataset.json', 'r', encoding='utf8') as file:
     dataset = json.load(file)
     # data = filter_data(data, args.subjects, args.groups)
 

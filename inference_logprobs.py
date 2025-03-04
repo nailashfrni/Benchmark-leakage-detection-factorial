@@ -1,11 +1,9 @@
 from transformers import AutoModelForCausalLM, AutoTokenizer
-from unsloth import FastLanguageModel
 import torch
 import torch.nn.functional as F
 import json
 import tqdm
 import argparse
-from peft import PeftModel
 
 parser = argparse.ArgumentParser(prog='logprobs', description='')
 parser.add_argument("--model_dir", type=str)
@@ -23,30 +21,44 @@ parser.add_argument(
         help="Select specific list of subjects (optional)"
     )
 parser.add_argument("--save_dir", type=str)
-parser.add_argument("--is_peft", type=bool, default=False)
+parser.add_argument("--fine_tune_type", type=str, default=None)
 parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
 
-if not args.is_peft:
+if not args.fine_tune_type:
     tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
     model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
-    base_model, tokenizer = FastLanguageModel.from_pretrained(
-        # "unsloth/Qwen2.5-0.5B-Instruct",
-        args.model_dir,
-        max_seq_length=2048,
-        dtype=None,
-        load_in_4bit=False,
-    )
-    FastLanguageModel.for_inference(base_model)
-    peft_model = PeftModel.from_pretrained(
-        base_model,
-        "nailashfrni/qwen0.5b-ift-mmlu-lora-3.0",
-        revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
-    )
-    model = peft_model.merge_and_unload()
+    from unsloth import FastLanguageModel
+    from peft import PeftModel
+
+    if args.fine_tune_type == 'ift':
+        base_model, tokenizer = FastLanguageModel.from_pretrained(
+            # "unsloth/Qwen2.5-0.5B-Instruct",
+            args.model_dir,
+            max_seq_length=2048,
+            dtype=None,
+            load_in_4bit=False,
+        )
+        FastLanguageModel.for_inference(base_model)
+        peft_model = PeftModel.from_pretrained(
+            base_model,
+            "nailashfrni/qwen0.5b-ift-mmlu-lora-3.0",
+            revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
+        )
+        model = peft_model.merge_and_unload()
+    else:
+        tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=True)
+        base_model = AutoModelForCausalLM.from_pretrained(base_model_dir, trust_remote_code=True,
+                                                    torch_dtype=torch.float16, device_map="auto")
+        peft_model = PeftModel.from_pretrained(
+                        base_model,
+                        adapter_dir,
+                        revision=f"checkpoint-epoch-{checkpoint_epoch}"
+                    )
+        model = peft_model.merge_and_unload()
 
 
 def find_indices(lst, value):
