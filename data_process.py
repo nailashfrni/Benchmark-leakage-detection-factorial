@@ -37,7 +37,7 @@ for index, row in enumerate(data_list):
 f"""Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
 ### Instruction:
-Choose the best option from the multiple-choice question below.
+Answer the following multiple choice question.
 
 ### Input:
 {row['question']}:
