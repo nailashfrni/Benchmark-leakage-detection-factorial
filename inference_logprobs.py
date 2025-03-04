@@ -36,6 +36,7 @@ else:
     from peft import PeftModel
 
     if args.fine_tune_type == 'ift':
+        print('debug ift')
         base_model, tokenizer = FastLanguageModel.from_pretrained(
             # "unsloth/Qwen2.5-0.5B-Instruct",
             args.model_dir,
@@ -52,6 +53,7 @@ else:
         )
         model = peft_model.merge_and_unload()
     else:
+        print('debug cpt')
         tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=True)
         base_model = AutoModelForCausalLM.from_pretrained(base_model_dir, trust_remote_code=True,
                                                     torch_dtype=torch.float16, device_map="auto")
