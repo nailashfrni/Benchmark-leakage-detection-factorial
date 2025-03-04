@@ -1,3 +1,4 @@
+from unsloth import FastLanguageModel
 from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import torch.nn.functional as F
@@ -35,7 +36,6 @@ else:
     from peft import PeftModel
 
     if args.fine_tune_type == 'ift':
-        from unsloth import FastLanguageModel
         base_model, tokenizer = FastLanguageModel.from_pretrained(
             # "unsloth/Qwen2.5-0.5B-Instruct",
             args.model_dir,
