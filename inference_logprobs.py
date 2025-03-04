@@ -1,5 +1,5 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
 from unsloth import FastLanguageModel
+from transformers import AutoModelForCausalLM, AutoTokenizer
 import torch
 import torch.nn.functional as F
 import json
@@ -29,20 +29,15 @@ parser.add_argument("--fine_tune_type", type=str, default=None) # ift or cpt
 parser.add_argument("--checkpoint_epoch", type=int, default=0)
 args = parser.parse_args()
 
-print('cpaa')
-if not args.fine_tune_type in ['ift', 'cpt']:
-    print('cpbb')
-    tokenizer = AutoTokenizer.from_pretrained(args.model_dir, trust_remote_code=True)
-    model = AutoModelForCausalLM.from_pretrained(args.model_dir, device_map="auto", trust_remote_code=True,
+if not args.fine_tune_type:
+    tokenizer = AutoTokenizer.from_pretrained(args.base_model_dir, trust_remote_code=True)
+    model = AutoModelForCausalLM.from_pretrained(args.base_model_dir, device_map="auto", trust_remote_code=True,
                                              torch_dtype="auto").eval()
 else:
-    print('cpcc')
-
     if args.fine_tune_type == 'ift':
-        print('cpdd')
         base_model, tokenizer = FastLanguageModel.from_pretrained(
             # "unsloth/Qwen2.5-0.5B-Instruct",
-            args.model_dir,
+            args.base_model_dir,
             max_seq_length=2048,
             dtype=None,
             load_in_4bit=False,
@@ -56,9 +51,8 @@ else:
         )
         model = peft_model.merge_and_unload()
     else:
-        print('cpdd')
-        tokenizer = AutoTokenizer.from_pretrained(base_model_dir, trust_remote_code=True)
-        base_model = AutoModelForCausalLM.from_pretrained(base_model_dir, trust_remote_code=True,
+        tokenizer = AutoTokenizer.from_pretrained(args.base_model_dir, trust_remote_code=True)
+        base_model = AutoModelForCausalLM.from_pretrained(args.base_model_dir, trust_remote_code=True,
                                                     torch_dtype=torch.float16, device_map="auto")
         peft_model = PeftModel.from_pretrained(
                         base_model,
