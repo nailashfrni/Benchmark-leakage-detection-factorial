@@ -12,6 +12,26 @@ import tqdm
 #         datas = [d for d in datas if d['group'] in groups]
 #     return datas
 
+def display_matching_accuracy(list1, list2):
+    assert len(list1) == len(list2), "Lists must have the same length"
+    matches = sum(a == b for a, b in zip(list1, list2))
+    print(f'Matching Accuracy: {matches / len(list1)} ({matches}/{len(list1)})')
+    return matches, matches / len(list1)
+
+def matching_counter(list1, list2, is_leakage):
+    assert len(list1) == len(list2), "Lists must have the same length"
+    symbol = 1 if is_leakage else 0
+    matches = sum(a == b == symbol for a, b in zip(list1, list2))
+    return matches
+
+def hamming_distance(list1, list2):
+    assert len(list1) == len(list2), "Lists must have the same length"
+    count = 0
+    for i in range(len(list1)):
+        if list1[i] != list2[i]:
+            count += 1
+    return count
+
 parser = argparse.ArgumentParser(prog='get_outlier', description='')
 parser.add_argument("--logprobs_dir", type=str)
 parser.add_argument("--permutations_data_dir", type=str)
@@ -97,6 +117,7 @@ if args.method == "shuffled":
 else:
     leakage_info = []
     outliers = []
+    y_pred = []
     for index, data in enumerate(list_logprobs):
         leakage = 0
         max = data[0]
@@ -111,14 +132,25 @@ else:
                 "max_value_index": str(0),
                 "id": list_data[index][0]["id"],
                 "data": list_data[index][0]["instruction"],
-                "logprobs": data[0]
+                "logprobs": data[0],
+                "label": dataset[index]['label']
             }
             outliers.append(dict)
             leakage = 1
         leakage_info.append({
             'id': list_data[index][0]["id"],
-            'leakage': leakage
+            'leakage': leakage,
+            "label": dataset[index]['label']
         })
+        y_pred.append(leakage)
+
     with open(f'{args.save_dir}/outliers_max{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
-        print(f"Leakage percentage: {len(outliers) / len(list_data):.2f}")
         json.dump(outliers, json_file, indent=4, ensure_ascii=False)
+    display_matching_accuracy(y_true, y_pred)
+    both_leakage = matching_counter(y_true, y_pred, True)
+    both_not_leakage = matching_counter(y_true, y_pred, False)
+    kappa = cohen_kappa_score(y_true, y_pred)
+    print(f"Kappa Score: {kappa}. Leakage percentage: {len(outliers) / len(list_data):.2f}")
+    print(f'Both Leakage: {both_leakage}')
+    print(f'Both Not Leakage: {both_not_leakage}')
+    print('Hamming distance:', hamming_distance(y_true, y_pred))

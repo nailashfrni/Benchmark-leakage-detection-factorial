@@ -43,7 +43,7 @@ else:
     FastLanguageModel.for_inference(base_model)
     peft_model = PeftModel.from_pretrained(
         base_model,
-        "nailashfrni/qwen0.5b-ift-mmlu-lora-2.0",
+        "nailashfrni/qwen0.5b-ift-mmlu-lora-3.0",
         revision=f"checkpoint-epoch-{args.checkpoint_epoch}"
     )
     model = peft_model.merge_and_unload()
