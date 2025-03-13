@@ -101,7 +101,7 @@ with open(args.permutations_data_dir, 'r', encoding='utf8') as file:
 #     datas = [d for d in datas if d['group'] in args.groups]
 subject_suffix = f"-{args.subjects}" if args.subjects else ""
 groups_suffix = f"-{args.groups}" if args.groups else ""
-cp_epoch_suffix = f"_cp-epoch-{args.checkpoint_epoch}" if (args.is_peft and args.checkpoint_epoch > 0) else ""
+cp_epoch_suffix = f"_cp-epoch-{args.checkpoint_epoch}" if (args.fine_tune_type and args.checkpoint_epoch > 0) else ""
 
 logprobs_list = []
 print('cpfff')

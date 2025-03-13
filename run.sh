@@ -5,5 +5,12 @@ python Benchmark-leakage-detection-factorial/get_outlier.py --logprobs_dir resul
 python get_outlier.py --permutations_data_dir data/permutations_data_clean_peft_dataset.json --save_dir result/outliers/ift-newsample --method shuffled --permutation_num 24 --prefix . --logprobs_dir result/logprobs/qwen0.5-ift-newsample/logprobs_cp-epoch-1.json
 
 
-
+# ift
 python get_outlier.py --permutations_data_dir data/permutations_data_clean_peft_dataset.json --save_dir result/outliers/ift-newsample --method not_shuffled --permutation_num 24 --prefix . --logprobs_dir result/logprobs/qwen0.5-ift-newsample/logprobs_cp-epoch-1.json
+
+
+# cpt (unused)
+python get_outlier.py --permutations_data_dir data/permutations_data_cpt_clean_peft_dataset.json --save_dir result/outliers/cpt --method not_shuffled --permutation_num 24 --prefix . --logprobs_dir result/logprobs/qwen0.5-cpt/logprobs_cp-epoch-1.json
+
+# cpt new lr
+python get_outlier.py --permutations_data_dir data/permutations_data_cpt_clean_peft_dataset.json --save_dir result/outliers/cpt-newlr --method not_shuffled --permutation_num 24 --prefix . --logprobs_dir result/logprobs/qwen0.5-cpt-newlr/logprobs_cpt_cp-epoch-1.json

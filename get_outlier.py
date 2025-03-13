@@ -144,8 +144,10 @@ else:
         })
         y_pred.append(leakage)
 
-    with open(f'{args.save_dir}/outliers_max{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
-        json.dump(outliers, json_file, indent=4, ensure_ascii=False)
+    # with open(f'{args.save_dir}/outliers_max{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
+    #     json.dump(outliers, json_file, indent=4, ensure_ascii=False)
+    with open(f'{args.save_dir}/leakage_max{cp_epoch_suffix}{subject_suffix}{groups_suffix}.json', 'w', encoding='utf8') as json_file:
+        json.dump(leakage_info, json_file, indent=4, ensure_ascii=False)
     display_matching_accuracy(y_true, y_pred)
     both_leakage = matching_counter(y_true, y_pred, True)
     both_not_leakage = matching_counter(y_true, y_pred, False)
